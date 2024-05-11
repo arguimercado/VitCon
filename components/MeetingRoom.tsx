@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LayoutList, Loader, Users } from "lucide-react";
 import { Button } from "./ui/button";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import EndCallButton from "@/app/(root)/meeting/[id]/_components/EndCallButton";
 import LoaderComponent from "./LoaderComponent";
 
@@ -50,7 +50,7 @@ const useCallLayout = () => {
 
 const MeetingRoom = () => {
 	
-	
+	const router = useRouter();
 	const { CallLayout, setLayout,layoutOptions,handleSelectLayout } = useCallLayout();
    const [showParticipants, setShowParticipants] = useState(false);
 	
@@ -80,7 +80,7 @@ const MeetingRoom = () => {
             </div>
          </div>
          <div className="fixed bottom-0 flex w-full items-center justify-center gap-5 flex-wrap">
-            <CallControls />
+            <CallControls onLeave={() => router.push('/')} />
             <DropdownMenu>
                <div className="flex items-center">
                   <DropdownMenuTrigger className="cursor-pointer rounded-2xl bg-[#19232d] px-4 py-2 hover:bg-[#4c535b]">

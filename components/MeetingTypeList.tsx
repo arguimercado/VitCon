@@ -6,6 +6,9 @@ import { Textarea } from "./ui/textarea";
 import ReactDatePicker from "react-datepicker";
 import { useCreateMeeting } from "@/lib/hooks/useCreateMeeting";
 import { MeetingDetail } from "@/lib/models/meeting-detail";
+import { useToast } from "./ui/use-toast";
+import { useRouter } from "next/navigation";
+import { Input } from "./ui/input";
 
 interface HomeCardItemProps {
    imgSource: string;
@@ -37,7 +40,7 @@ const homeCardItems: HomeCardItemProps[] = [
 
    {
       imgSource: "/icons/recordings.svg",
-      title: "New Recordings",
+      title: "View Recordings",
       description: "Checkout your recordings",
       meetingState: undefined,
       color: "bg-purple-1",
@@ -93,6 +96,7 @@ const ScheduleMeetingForm = ({setValues,values} :
 };
 
 const MeetingTypeList = () => {
+
    const [meetingState, setMeetingState] = useState<
       "isScheduleMeeting" | "isJoiningMeeting" | "isInstantMeeting" | undefined
    >();
@@ -103,8 +107,30 @@ const MeetingTypeList = () => {
       link: "",
    });
 
-   const { router, toast, callDetails, createMeeting, meetingLink } =
-      useCreateMeeting(values);
+   const {toast} = useToast();
+   const router = useRouter();
+   const {callDetails, createMeeting, meetingLink } = useCreateMeeting();
+
+   const handleCreateMeeting = async () => {
+      try {
+         const id =  crypto.randomUUID();
+         if (!values.dateTime) {
+            toast({ title: "Please select date and time" });
+            return;
+         }
+         const description = values.description || "Instant meeting";
+         const callId = await createMeeting(values.dateTime,id,description);
+         console.log(callId);
+
+         if (!values.description) {
+            router.push(`/meeting/${callId}`);
+         }
+         toast({ title: "Meeting Created" });
+      }catch(error) {
+         console.log(error);
+         toast({title: "Failed to create meeting",});
+      }
+   }
 
    return (
       <section className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
@@ -128,8 +154,21 @@ const MeetingTypeList = () => {
             onClose={() => setMeetingState(undefined)}
             title="Start an instant Meeting"
             className="text-center"
-            onClick={createMeeting}
+            onClick={handleCreateMeeting}
          />
+
+         <MeetingModal
+            isOpen={meetingState === "isJoiningMeeting"}
+            onClose={() => setMeetingState(undefined)}
+            title="Type the Link here"
+            className="text-center"
+            onClick={() => router.push(values.link)}
+         >
+            <Input
+               placeholder="Meeting Link" 
+               className="border-none w-full bg-dark-3 focus-visible:ring-0 focus-visible:ring-offset-0" 
+               onChange={(e) => setValues({...values,link: e.target.value})} />
+         </MeetingModal>
 
          {!callDetails ? (
             <MeetingModal
@@ -137,7 +176,7 @@ const MeetingTypeList = () => {
                onClose={() => setMeetingState(undefined)}
                title="Create Meeting"
                buttonText="Schedule Meeting"
-               onClick={createMeeting}
+               onClick={handleCreateMeeting}
             >
                <ScheduleMeetingForm values={values} setValues={setValues} />
             </MeetingModal>

@@ -8,7 +8,7 @@ const MeetingSetup = ({setIsSetupComplete} : {setIsSetupComplete: (value: boolea
    const call = useCall();
 
    if (!call)
-      throw new Error("usecall must be used within StreamCall component");
+      throw new Error("usecall must be used within Stream Call component");
 
    useEffect(() => {
       if (isMicCamToggleOn) {
